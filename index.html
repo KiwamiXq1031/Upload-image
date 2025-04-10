@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+ <title>ZeroImageUploader</title>
+ <style>
+ * {
+ box-sizing: border-box;
+ }
+
+ body {
+ margin: 0;
+ padding: 0;
+ font-family: Arial, sans-serif;
+ background-color: #f4f4f4;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ height: 100vh;
+ }
+
+ .container {
+ width: 100%;
+ max-width: 400px;
+ background: #fff;
+ padding: 24px;
+ border-radius: 10px;
+ box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+ text-align: center;
+ }
+
+ .title {
+ font-size: 22px;
+ font-weight: bold;
+ color: #3f83f8;
+ margin-bottom: 20px;
+ }
+
+ .dropzone {
+ border: 2px dashed #ccc;
+ border-radius: 10px;
+ padding: 30px;
+ text-align: center;
+ cursor: pointer;
+ transition: 0.3s ease;
+ }
+
+ .dropzone:hover {
+ border-color: #3f83f8;
+ background-color: #f0f8ff;
+ }
+
+ .dropzone svg {
+ width: 50px;
+ height: 50px;
+ color: #aaa;
+ margin-bottom: 10px;
+ }
+
+ .btn {
+ width: 100%;
+ margin-top: 20px;
+ padding: 12px;
+ border: none;
+ background-color: #3f83f8;
+ color: white;
+ font-weight: bold;
+ border-radius: 6px;
+ cursor: pointer;
+ transition: background-color 0.3s;
+ }
+
+ .btn:hover {
+ background-color: #2563eb;
+ }
+
+ .result {
+ margin-top: 20px;
+ font-size: 14px;
+ color: #555;
+ }
+ </style>
+</head>
+<body>
+
+ <div class="container">
+ <div class="title">ZeroImageUploader</div>
+
+ <div class="dropzone" id="dropzone">
+ <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2"
+ viewBox="0 0 24 24">
+ <path stroke-linecap="round" stroke-linejoin="round"
+ d="M3 15a4 4 0 004 4h10a4 4 0 004-4M16 10l-4-4m0 0L8 10m4-4v12" />
+ </svg>
+ <p>Drag & drop an image here</p>
+ <p style="font-size: 13px; color: #888;">or click to browse</p>
+ <input type="file" id="imageInput" accept="image/*" style="display: none;" />
+ </div>
+
+ <button class="btn" id="uploadBtn">Upload Image</button>
+
+ <div class="result" id="resultText">No uploaded file</div>
+ </div>
+
+ <script>
+ const dropzone = document.getElementById('dropzone');
+ const input = document.getElementById('imageInput');
+ const uploadBtn = document.getElementById('uploadBtn');
+ const resultText = document.getElementById('resultText');
+
+ let selectedFile = null;
+
+ dropzone.addEventListener('click', () => input.click());
+
+ dropzone.addEventListener('dragover', e => {
+ e.preventDefault();
+ dropzone.style.borderColor = '#3f83f8';
+ dropzone.style.backgroundColor = '#f0f8ff';
+ });
+
+ dropzone.addEventListener('dragleave', () => {
+ dropzone.style.borderColor = '#ccc';
+ dropzone.style.backgroundColor = 'transparent';
+ });
+
+ dropzone.addEventListener('drop', e => {
+ e.preventDefault();
+ dropzone.style.borderColor = '#ccc';
+ dropzone.style.backgroundColor = 'transparent';
+ const files = e.dataTransfer.files;
+ if (files.length) {
+ input.files = files;
+ selectedFile = files[0];
+ resultText.textContent = selectedFile.name;
+ }
+ });
+
+ input.addEventListener('change', () => {
+ selectedFile = input.files[0];
+ resultText.textContent = selectedFile ? selectedFile.name : 'No uploaded file';
+ });
+
+ uploadBtn.addEventListener('click', async () => {
+ if (!selectedFile) return alert("No file selected!");
+
+ resultText.textContent = 'Uploading...';
+
+ const formData = new FormData();
+ formData.append('image', selectedFile);
+
+ try {
+ const res = await fetch('/upload', {
+ method: 'POST',
+ body: formData
+ });
+ const data = await res.json();
+ resultText.innerHTML = `<a href="${data.url}" target="_blank">${data.url}</a>`;
+ } catch (err) {
+ console.error(err);
+ resultText.textContent = 'Upload failed';
+ }
+ });
+ </script>
+
+</body>
+</html>
